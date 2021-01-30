@@ -1,37 +1,8 @@
-const axios = require('axios');
-const BASE_URL = 'https://chess.com/callback/member/stats/';
-
-const fetchUser = async (name) => {
-    let res = await axios.get(BASE_URL + name);
-    return {
-        stats: mapUserStats(res.data.stats),
-        fide: res.data.officialRating ? res.data.officialRating.rating : null
-    }
-}
-
-const mapUserStats = (stats) => {
-    let usefulControls = ['lightning', 'bullet', 'rapid'];
-    let timeControls = stats.filter(s => usefulControls.includes(s.key));
-
-    return timeControls.map(t => {
-        return new TimeControl({
-            name: t.key,
-            rating: t.stats.rating,
-            highestRating: t.stats.highest_rating,
-            gameCount: t.gameCount,
-            winCount: t.stats.total_win_count,
-            lossCount: t.stats.total_loss_count,
-            drawCount: t.stats.total_draw_count
-        })
-    });
-}
-
 class TimeControl {
     constructor({
         name = '',
         rating = 0,
         highestRating = 0,
-        gameCount = 0,
         winCount = 0,
         lossCount = 0,
         drawCount = 0
@@ -39,21 +10,50 @@ class TimeControl {
         this.name = name;
         this.rating = rating;
         this.highestRating = highestRating;
-        this.gameCount = gameCount;
         this.winCount = winCount;
         this.lossCount = lossCount;
         this.drawCount = drawCount;
     }
 
+    hasGames() {
+        return this.totalGamesCount() > 0;
+    }
+
+    totalGamesCount() {
+        return this.winCount + this.lossCount + this.drawCount;
+    }
+
+    getTitleString() {
+        const capitalizedName = this.name.charAt(0).toUpperCase() + this.name.slice(1);
+        return `${capitalizedName}`;
+    }
+
+    getRatingString() {
+        if (!this.hasGames()) return 'No games played';
+        return `
+            Rating: ${this.rating} (${this.highestRating})
+            W: ${this.winCount}
+            L: ${this.lossCount}
+            D: ${this.drawCount}
+        `
+    }
 }
 
 class ChessProfile {
-    constructor(stats, fide, name) {
+    constructor({
+        stats = [],
+        name = null,
+        avatar = null,
+        title = null,
+        fide = null
+    } = {}) {
         this.name = name;
+        this.avatar = avatar;
+        this.title = title;
         this.fide = fide;
-        this.bullet = null;
-        this.lightning = null;
-        this.rapid = null;
+        this.bullet = new TimeControl();
+        this.blitz = new TimeControl();
+        this.rapid = new TimeControl();
 
         this.setTimeControls(stats);
     }
@@ -64,18 +64,16 @@ class ChessProfile {
         });
     }
 
-    getRatingString(control) {
-        if (this[control] === null) return '—';
-        return `Rating: ${this[control].rating} \n (W: ${this[control].winCount}/L: ${this[control].lossCount}/D: ${this[control].drawCount})`
-    }
     getFideRating() {
-        return this.fide ? `Rating: ${this.fide}` : '—';
+        if (this.fide) {
+            return `Rating: ${this.fide} \n Title: ${this.title ? this.title : '—'}`
+        }
+
+        return '—';
     }
 }
 
-const run = async (name) => {
-    let user = await fetchUser(name);
-    return new ChessProfile(user.stats, user.fide, name);
+module.exports = {
+    TimeControl,
+    ChessProfile
 }
-
-module.exports = run;
