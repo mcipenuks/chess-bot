@@ -36,8 +36,8 @@ const helpEmbed = () => {
         )
 }
 
-client.on('ready', () => {
-    client.user.setStatus('Type !cb');
+client.on('ready', async () => {
+    await client.user.setPresence({ activity: { name: '!cb' }, status: 'online' })
 });
 
 client.on('message', async (msg) => {
