@@ -36,6 +36,10 @@ const helpEmbed = () => {
         )
 }
 
+client.on('ready', () => {
+    client.user.setStatus('Type !cb');
+});
+
 client.on('message', async (msg) => {
     if (msg.content === PREFIX) {
         msg.channel.send(helpEmbed());
