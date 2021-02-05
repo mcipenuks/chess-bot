@@ -48,13 +48,11 @@ client.on('message', async (msg) => {
             msg.channel.send(profileEmbed(profile));
         } catch (err) {
             if (err.response.status === 404) {
-                console.log(err.response.data);
                 msg.channel.send(new MessageEmbed()
                     .setTitle(`User with name "${username}" was not found`)
                     .setColor('#ff3333')
                 );
             } else {
-                console.log(err.response.data);
                 msg.channel.send(new MessageEmbed()
                     .setTitle(`Something is not working properly on my side when searching for "${username}"`)
                     .setColor('#ff3333')
