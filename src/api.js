@@ -42,11 +42,6 @@ const getProfile = async (username) => {
     });
 }
 
-// (async() => {
-//     let a = await getProfile('hikaru');
-//     console.log(a);
-// })();
-
 const mapStats = (stats) => {
     const timeControls = ['chess_bullet', 'chess_blitz', 'chess_rapid'];
     return timeControls.map(t => {
