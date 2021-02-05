@@ -46,15 +46,15 @@ client.on('message', async (msg) => {
         try {
             let profile = await api.getProfile(username);
             msg.channel.send(profileEmbed(profile));
-        } catch (e) {
-            if (e.code === 0) {
-                console.log(e);
+        } catch (err) {
+            if (err.response.status === 404) {
+                console.log(err.response.data);
                 msg.channel.send(new MessageEmbed()
-                    .setTitle(`User with name "${username}" was not found.`)
+                    .setTitle(`User with name "${username}" was not found`)
                     .setColor('#ff3333')
                 );
             } else {
-                console.log(e);
+                console.log(err.response.data);
                 msg.channel.send(new MessageEmbed()
                     .setTitle(`Something is not working properly on my side when searching for "${username}"`)
                     .setColor('#ff3333')
