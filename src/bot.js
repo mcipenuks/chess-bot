@@ -1,3 +1,7 @@
+var dayjs = require('dayjs')
+var relativeTime = require('dayjs/plugin/relativeTime');
+dayjs.extend(relativeTime);
+
 class TimeControl {
     constructor({
         name = '',
@@ -42,15 +46,21 @@ class TimeControl {
 class ChessProfile {
     constructor({
         stats = [],
+        username = null,
         name = null,
+        country = null,
         avatar = null,
         title = null,
-        fide = null
+        fide = null,
+        lastOnline = dayjs()
     } = {}) {
+        this.username = username;
         this.name = name;
         this.avatar = avatar;
+        this.country = country,
         this.title = title;
         this.fide = fide;
+        this.lastOnline = lastOnline;
         this.bullet = new TimeControl();
         this.blitz = new TimeControl();
         this.rapid = new TimeControl();
@@ -62,6 +72,26 @@ class ChessProfile {
         stats.forEach(s => {
             this[s.name] = s;
         });
+    }
+
+    getDescription() {
+        let description = '';
+
+        if (this.name) description += `${this.name} \n`;
+        description += `${this.getLastOnline()} \n`;
+
+        return description;
+    }
+
+    getCountryFlag() {
+        if (!this.country) return '';
+        if (this.country === 'xx') return `:globe_with_meridians:`;
+        return `:flag_${this.country.toLowerCase()}:`;
+    }
+
+    getLastOnline() {
+        const fromNow = dayjs(this.lastOnline * 1000).fromNow();
+        return `Last online: ${fromNow}`;
     }
 
     getFideRating() {

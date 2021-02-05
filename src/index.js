@@ -6,11 +6,12 @@ const api = require('./api');
 const PREFIX = "!cb";
 client.login(process.env.DISCORD_TOKEN);
 
-const successEmbed = (profile) => {
+const profileEmbed = (profile) => {
     return new MessageEmbed()
-        .setTitle(`${profile.name} (see profile)`)
+        .setTitle(`${profile.username} ${profile.getCountryFlag()}`)
+        .setDescription(profile.getDescription())
         .setColor('#6c9d41')
-        .setURL('https://chess.com/member/' + profile.name)
+        .setURL('https://chess.com/member/' + profile.username)
         .addFields(
             { name: profile.bullet.getTitleString(), value: profile.bullet.getRatingString(),  inline: true },
             { name: profile.blitz.getTitleString(), value: profile.blitz.getRatingString(),  inline: true },
@@ -20,19 +21,13 @@ const successEmbed = (profile) => {
         .setThumbnail(profile.avatar)
 }
 
-const errorEmbed = (username) => {
-    return new MessageEmbed()
-        .setTitle(`User with name "${username}" was not found.`)
-        .setColor('#ff3333')
-}
-
 const helpEmbed = () => {
     return new MessageEmbed()
         .setTitle(`Help`)
         .setColor('#5bc0de')
         .addFields(
-            { name: 'Description', value: "I'm a simple bot that retrieves user profiles from chess.com \n Maybe in the future I will be capable of more things :("},
-            { name: 'Commands', value: "Type !cb profile <username> to get user profile" }
+            { name: 'Description', value: "I'm a simple bot that retrieves user profiles from chess.com \n As of this moment only **Bullet**, **Blitz**, **Rapid** and **FIDE** ratings are gathered"},
+            { name: 'Commands', value: "Type `!cb profile <username>` to get user profile" }
         )
 }
 
@@ -50,9 +45,21 @@ client.on('message', async (msg) => {
         let username = msg.content.split(' ')[2];
         try {
             let profile = await api.getProfile(username);
-            msg.channel.send(successEmbed(profile));
+            msg.channel.send(profileEmbed(profile));
         } catch (e) {
-            msg.channel.send(errorEmbed(username));
+            if (e.code === 0) {
+                console.log(e);
+                msg.channel.send(new MessageEmbed()
+                    .setTitle(`User with name "${username}" was not found.`)
+                    .setColor('#ff3333')
+                );
+            } else {
+                console.log(e);
+                msg.channel.send(new MessageEmbed()
+                    .setTitle(`Something is not working properly on my side when searching for "${username}"`)
+                    .setColor('#ff3333')
+                );
+            }
         }
         msg.channel.stopTyping();
     }
